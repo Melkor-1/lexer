@@ -31,9 +31,8 @@ func (l *Lexer) readChar() {
 func (l *Lexer) peekChar() byte {
 	if l.readPos >= len(l.input) {
 		return 0
-	} else {
-		return l.input[l.readPos]
-	}
+	} 
+	return l.input[l.readPos]
 }
 
 func (l *Lexer) NextToken() token.Token {
@@ -72,6 +71,8 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.GT, l.ch)
 	case ';':
 		tok = newToken(token.SEMICOLON, l.ch)
+	case ':':
+		tok = newToken(token.COLON, l.ch)
 	case '(':
 		tok = newToken(token.LPAREN, l.ch)
 	case ')':
@@ -82,9 +83,16 @@ func (l *Lexer) NextToken() token.Token {
 		tok = newToken(token.LBRACE, l.ch)
 	case '}':
 		tok = newToken(token.RBRACE, l.ch)
+	case '[':
+		tok = newToken(token.LBRACKET, l.ch)
+	case ']':
+		tok = newToken(token.RBRACKET, l.ch)
 	case 0:
 		tok.Literal = ""
 		tok.Type = token.EOF
+    case '"':
+        tok.Type = token.STRING;
+        tok.Literal = l.readString()
 	default:
 		if isLetter(l.ch) {
 			tok.Literal = l.readIdentifier()
@@ -105,6 +113,21 @@ func (l *Lexer) NextToken() token.Token {
 
 func newToken(tokenType token.TokenType, ch byte) token.Token {
 	return token.Token{Type: tokenType, Literal: string(ch)}
+}
+
+// Character escaping is not yet supported.
+func (l *Lexer) readString() string {
+    pos := l.pos + 1
+
+    for {
+        l.readChar()
+
+        if l.ch == '"' || l.ch == 0 {
+            break
+        }
+    }
+
+    return l.input[pos:l.pos]
 }
 
 func (l *Lexer) readIdentifier() string {
